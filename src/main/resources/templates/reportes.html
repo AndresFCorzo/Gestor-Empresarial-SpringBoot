@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Reportes Contables</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand">🏢 Reportes Contables</span>
+            <div>
+                <a href="/dashboard.html" class="btn btn-outline-light btn-sm me-2"><i class="bi bi-house"></i> Inicio</a>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">Salir</button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-funnel"></i> Filtros</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label>Fecha Inicio</label>
+                        <input type="date" class="form-control" id="fechaInicio">
+                    </div>
+                    <div class="col-md-4">
+                        <label>Fecha Fin</label>
+                        <input type="date" class="form-control" id="fechaFin">
+                    </div>
+                    <div class="col-md-4">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary w-100" onclick="generarReporte()"><i class="bi bi-search"></i> Generar Reporte</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5><i class="bi bi-graph-up"></i> Reporte de Ventas</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="reporteTable">
+                        <thead class="table-dark">
+                            <tr><th>Factura</th><th>Fecha</th><th>Cliente</th><th>Producto</th><th>Cantidad</th><th>Valor Unitario</th><th>Total</th></tr>
+                        </thead>
+                        <tbody id="reporteBody"></tbody>
+                        <tfoot><tr class="table-success"><th colspan="6" class="text-end">TOTAL GENERAL</th><th id="totalGeneral">$0</th></tr></tfoot>
+                    </table>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-secondary" onclick="imprimirReporte()"><i class="bi bi-printer"></i> Imprimir</button>
+                    <button class="btn btn-success" onclick="exportarExcel()"><i class="bi bi-file-excel"></i> Exportar Excel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        async function generarReporte() {
+            const inicio = document.getElementById('fechaInicio').value;
+            const fin = document.getElementById('fechaFin').value;
+            if (!inicio || !fin) { alert('Seleccione ambas fechas'); return; }
+            
+            const response = await fetch(`/api/facturas/reporte/ventas?inicio=${inicio}&fin=${fin}`);
+            const data = await response.json();
+            
+            const tbody = document.getElementById('reporteBody');
+            tbody.innerHTML = '';
+            let totalGeneral = 0;
+            
+            data.facturas.forEach(factura => {
+                factura.detalles.forEach(detalle => {
+                    totalGeneral += detalle.total;
+                    tbody.innerHTML += `<tr>
+                        <td>${factura.numeroFactura}</td>
+                        <td>${new Date(factura.fecha).toLocaleDateString()}</td>
+                        <td>${factura.cliente?.nombre || 'N/A'}</td>
+                        <td>${detalle.producto?.nombre || 'N/A'}</td>
+                        <td class="text-center">${detalle.cantidad}</td>
+                        <td class="text-end">$${detalle.precioUnitario.toLocaleString()}</td>
+                        <td class="text-end">$${detalle.total.toLocaleString()}</td>
+                    </tr>`;
+                });
+            });
+            document.getElementById('totalGeneral').innerText = `$${totalGeneral.toLocaleString()}`;
+        }
+        
+        function imprimirReporte() { window.print(); }
+        
+        function exportarExcel() {
+            let csv = "Factura,Fecha,Cliente,Producto,Cantidad,Valor Unitario,Total\n";
+            document.querySelectorAll('#reporteBody tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length) {
+                    csv += `${cells[0].innerText},${cells[1].innerText},${cells[2].innerText},${cells[3].innerText},${cells[4].innerText},${cells[5].innerText},${cells[6].innerText}\n`;
+                }
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'reporte_ventas.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function logout() { localStorage.removeItem('usuario'); window.location.href = '/login.html'; }
+        
+        if (!localStorage.getItem('usuario')) window.location.href = '/login.html';
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
