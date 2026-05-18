@@ -1,0 +1,51 @@
+# =====================================================
+# DOCKERIGNORE - Archivos excluidos del contexto Docker
+# =====================================================
+
+# Archivos compilados
+*.class
+*.jar
+*.war
+
+# Directorios de compilación
+/target/
+/build/
+/out/
+/bin/
+
+# IDE
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Archivos de entorno
+.env
+.env.*
+*.properties
+
+# Tests
+src/test/
+
+# Docker
+docker/
+*.dockerfile
+.dockerignore
+
+# Git
+.git/
+.gitignore
+
+# Documentación
+docs/
+README.md

@@ -1,5 +1,5 @@
 /**
- * Manejador global de excepciones para la API
+ * Manejador global de excepciones
  * 
  * @author Andres Felipe Corzo Angarita
  */
@@ -16,40 +16,32 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    
-    /**
-     * Maneja excepciones de validación
-     */
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
-        
+
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
+        errors.put("mensaje", "Error de validación en los campos");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
-    
-    /**
-     * Maneja excepciones de negocio (RuntimeException)
-     */
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("error", ex.getMessage());
+        error.put("mensaje", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
-    
-    /**
-     * Maneja excepciones genéricas
-     */
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("error", "Error interno del servidor");
+        error.put("mensaje", "Error interno del servidor");
         error.put("detalle", ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }

@@ -7,6 +7,7 @@ package com.gestorempresarial.service;
 import com.gestorempresarial.modelo.Usuario;
 import com.gestorempresarial.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
@@ -19,6 +20,8 @@ public class UsuarioService {
     @Autowired
     private UsuarioRepository usuarioRepository;
     
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    
     /**
      * Registra un nuevo usuario en el sistema
      * @param usuario Usuario a registrar
@@ -28,12 +31,13 @@ public class UsuarioService {
     @Transactional
     public Usuario registrarUsuario(Usuario usuario) {
         // Validar que el correo no exista
-        if (usuarioRepository.findByCorreo(usuario.getCorreo()).isPresent()) {
+        if (usuarioRepository.existsByCorreo(usuario.getCorreo())) {
             throw new RuntimeException("Ya existe un usuario con el correo: " + usuario.getCorreo());
         }
         
         usuario.setFechaRegistro(new Date());
         usuario.setActivo(true);
+        usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
         
         return usuarioRepository.save(usuario);
     }
@@ -45,13 +49,17 @@ public class UsuarioService {
      * @return Usuario autenticado o null
      */
     public Usuario autenticar(String correo, String contrasena) {
-        return usuarioRepository.findByCorreoAndContrasena(correo, contrasena)
-            .map(usuario -> {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByCorreo(correo);
+        
+        if (usuarioOpt.isPresent()) {
+            Usuario usuario = usuarioOpt.get();
+            if (passwordEncoder.matches(contrasena, usuario.getContrasena()) && usuario.isActivo()) {
                 usuario.setUltimoAcceso(new Date());
                 usuarioRepository.save(usuario);
                 return usuario;
-            })
-            .orElse(null);
+            }
+        }
+        return null;
     }
     
     /**
@@ -105,7 +113,7 @@ public class UsuarioService {
     @Transactional
     public void cambiarContrasena(Long id, String nuevaContrasena) {
         Usuario usuario = buscarPorId(id);
-        usuario.setContrasena(nuevaContrasena);
+        usuario.setContrasena(passwordEncoder.encode(nuevaContrasena));
         usuarioRepository.save(usuario);
     }
     

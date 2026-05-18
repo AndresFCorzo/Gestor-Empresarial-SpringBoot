@@ -1,16 +1,12 @@
 -- =====================================================
 -- GESTOR EMPRESARIAL INTEGRADO - BASE DE DATOS
 -- =====================================================
--- Autores: Andres Felipe Corzo Angarita
---          Thomas Felipe Colmenares Perdomo
+-- Autor: Andres Felipe Corzo Angarita
 -- Instructor: Francisco Arnaldo Vargas Bermudez
 -- Programa: Análisis y Desarrollo de Software
 -- Ficha: 3070323
--- SENA - Bogotá 2025
+-- SENA - Bogotá 2026
 -- =====================================================
-
--- Eliminar base de datos si existe (opcional - comentar si no se desea)
--- DROP DATABASE IF EXISTS gestor_empresarial;
 
 -- Crear base de datos
 CREATE DATABASE IF NOT EXISTS gestor_empresarial;
@@ -146,7 +142,7 @@ CREATE TABLE IF NOT EXISTS empleados (
 CREATE TABLE IF NOT EXISTS nominas (
     id_nomina BIGINT PRIMARY KEY AUTO_INCREMENT,
     id_empleado BIGINT NOT NULL,
-    mes VARCHAR(7) NOT NULL, -- Formato: YYYY-MM
+    mes VARCHAR(7) NOT NULL,
     salario_base DECIMAL(12,2) NOT NULL,
     horas_extras DECIMAL(12,2) DEFAULT 0,
     bonificaciones DECIMAL(12,2) DEFAULT 0,
@@ -197,16 +193,16 @@ CREATE TABLE IF NOT EXISTS documentos (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- DATOS DE PRUEBA (INSERTS)
+-- DATOS DE PRUEBA (INSERTS) - CONTRASEÑA BCrypt
 -- =====================================================
 
--- Insertar usuarios de prueba
+-- Insertar usuarios de prueba (contraseña: admin123 encriptada con BCrypt)
 INSERT INTO usuarios (nombre, correo, contrasena, rol, documento_identidad, telefono, fecha_registro, activo) VALUES
-('Administrador Sistema', 'admin@gestorempresarial.com', 'admin123', 'ADMINISTRADOR', '123456789', '3000000001', CURDATE(), TRUE),
-('Empleado Demo', 'empleado@gestorempresarial.com', 'empleado123', 'EMPLEADO', '987654321', '3111111111', CURDATE(), TRUE),
-('Contador Principal', 'contador@gestorempresarial.com', 'contador123', 'CONTADOR', '111222333', '3222222222', CURDATE(), TRUE),
-('Gerente General', 'gerente@gestorempresarial.com', 'gerente123', 'GERENTE', '444555666', '3333333333', CURDATE(), TRUE),
-('RRHH Encargado', 'rrhh@gestorempresarial.com', 'rrhh123', 'RECURSOS_HUMANOS', '777888999', '3444444444', CURDATE(), TRUE);
+('Administrador Sistema', 'admin@gestorempresarial.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'ADMINISTRADOR', '123456789', '3000000001', CURDATE(), TRUE),
+('Empleado Demo', 'empleado@gestorempresarial.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'EMPLEADO', '987654321', '3111111111', CURDATE(), TRUE),
+('Contador Principal', 'contador@gestorempresarial.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'CONTADOR', '111222333', '3222222222', CURDATE(), TRUE),
+('Gerente General', 'gerente@gestorempresarial.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'GERENTE', '444555666', '3333333333', CURDATE(), TRUE),
+('RRHH Encargado', 'rrhh@gestorempresarial.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'RECURSOS_HUMANOS', '777888999', '3444444444', CURDATE(), TRUE);
 
 -- Insertar clientes de prueba
 INSERT INTO clientes (nombre, nit, direccion, correo, telefono, fecha_registro) VALUES
@@ -254,160 +250,5 @@ INSERT INTO empleados (nombre, cargo, documento, telefono, correo, direccion, fe
 ('Carlos Gómez', 'Gerente', '11112222', '3123333333', 'carlos.gomez@empresa.com', 'Avenida 7 #8-9', DATE_SUB(CURDATE(), INTERVAL 800 DAY), 4500000, TRUE),
 ('María Rodríguez', 'RRHH', '33334444', '3134444444', 'maria.rodriguez@empresa.com', 'Calle 10 #11-12', DATE_SUB(CURDATE(), INTERVAL 200 DAY), 2800000, TRUE);
 
--- Insertar registros generales de prueba
-INSERT INTO registros_generales (tipo_registro, fecha_registro, descripcion, id_relacionado, entidad_relacionada, estado, usuario_registro) VALUES
-('CLIENTE', CURDATE(), 'Cliente registrado: Empresa Demo SAS', 1, 'Cliente', 'ACTIVO', 'Administrador'),
-('CLIENTE', CURDATE(), 'Cliente registrado: Cliente Prueba LTDA', 2, 'Cliente', 'ACTIVO', 'Administrador'),
-('PRODUCTO', CURDATE(), 'Producto registrado: Laptop Gamer', 1, 'Producto', 'ACTIVO', 'Administrador'),
-('FACTURA', CURDATE(), 'Factura emitida: FAC-001', 1, 'Factura', 'ACTIVO', 'Administrador'),
-('FACTURA', CURDATE(), 'Factura emitida: FAC-002', 2, 'Factura', 'ACTIVO', 'Administrador'),
-('EMPLEADO', CURDATE(), 'Empleado contratado: Juan Pérez', 1, 'Empleado', 'ACTIVO', 'RRHH Encargado');
-
--- Insertar documentos de prueba
-INSERT INTO documentos (nombre, tipo, ruta_archivo, fecha, id_usuario, id_relacionado, entidad_relacionada) VALUES
-('Factura FAC-001.pdf', 'FACTURA', '/documentos/facturas/FAC-001.pdf', CURDATE(), 1, 1, 'Factura'),
-('Contrato Juan Pérez.pdf', 'CONTRATO', '/documentos/contratos/contrato_juan_perez.pdf', CURDATE(), 5, 1, 'Empleado'),
-('Cotización Cliente 1.pdf', 'COTIZACION', '/documentos/cotizaciones/cotizacion_cliente1.pdf', CURDATE(), 1, 1, 'Cliente'),
-('Soporte Viático Enero.pdf', 'SOPORTE', '/documentos/viaticos/soporte_enero.pdf', CURDATE(), 2, 1, 'Viatico');
-
--- =====================================================
--- CONSULTAS DE VERIFICACIÓN
--- =====================================================
-
--- Verificar tablas creadas
-SHOW TABLES;
-
--- Contar registros por tabla
-SELECT 'usuarios' AS tabla, COUNT(*) AS registros FROM usuarios
-UNION ALL SELECT 'clientes', COUNT(*) FROM clientes
-UNION ALL SELECT 'productos', COUNT(*) FROM productos
-UNION ALL SELECT 'facturas', COUNT(*) FROM facturas
-UNION ALL SELECT 'detalles_factura', COUNT(*) FROM detalles_factura
-UNION ALL SELECT 'empleados', COUNT(*) FROM empleados
-UNION ALL SELECT 'registros_generales', COUNT(*) FROM registros_generales;
-
--- =====================================================
--- VISTAS ÚTILES (Opcionales)
--- =====================================================
-
--- Vista: Resumen de ventas por producto
-CREATE OR REPLACE VIEW vista_ventas_productos AS
-SELECT 
-    p.codigo,
-    p.nombre AS producto,
-    p.categoria,
-    COALESCE(SUM(df.cantidad), 0) AS total_vendido,
-    COALESCE(SUM(df.total), 0) AS total_ventas,
-    COUNT(DISTINCT f.id_factura) AS num_facturas
-FROM productos p
-LEFT JOIN detalles_factura df ON p.id_producto = df.id_producto
-LEFT JOIN facturas f ON df.id_factura = f.id_factura AND f.estado = 'EMITIDA'
-GROUP BY p.id_producto
-ORDER BY total_ventas DESC;
-
--- Vista: Resumen de clientes
-CREATE OR REPLACE VIEW vista_resumen_clientes AS
-SELECT 
-    c.id_cliente,
-    c.nombre,
-    c.nit,
-    COUNT(f.id_factura) AS num_facturas,
-    COALESCE(SUM(f.total), 0) AS total_compras,
-    MAX(f.fecha) AS ultima_compra
-FROM clientes c
-LEFT JOIN facturas f ON c.id_cliente = f.id_cliente AND f.estado = 'EMITIDA'
-GROUP BY c.id_cliente
-ORDER BY total_compras DESC;
-
--- Vista: Dashboard de métricas
-CREATE OR REPLACE VIEW vista_dashboard_metricas AS
-SELECT
-    (SELECT COUNT(*) FROM clientes) AS total_clientes,
-    (SELECT COUNT(*) FROM productos WHERE stock > 0) AS total_productos,
-    (SELECT COUNT(*) FROM productos WHERE stock <= 5) AS productos_stock_bajo,
-    (SELECT COALESCE(SUM(total), 0) FROM facturas WHERE estado = 'EMITIDA' AND MONTH(fecha) = MONTH(CURDATE())) AS ventas_mes_actual,
-    (SELECT COALESCE(SUM(total), 0) FROM facturas WHERE estado = 'EMITIDA') AS ventas_totales,
-    (SELECT COUNT(*) FROM facturas WHERE estado = 'EMITIDA' AND MONTH(fecha) = MONTH(CURDATE())) AS facturas_mes_actual;
-
--- =====================================================
--- PROCEDIMIENTOS ALMACENADOS (Opcionales)
--- =====================================================
-
-DELIMITER //
-
--- Procedimiento para generar reporte de ventas por período
-CREATE PROCEDURE sp_reporte_ventas(IN fecha_inicio DATE, IN fecha_fin DATE)
-BEGIN
-    SELECT 
-        f.id_factura,
-        f.numero_factura,
-        f.fecha,
-        c.nombre AS cliente,
-        p.nombre AS producto,
-        df.cantidad,
-        df.precio_unitario,
-        df.total
-    FROM facturas f
-    JOIN clientes c ON f.id_cliente = c.id_cliente
-    JOIN detalles_factura df ON f.id_factura = df.id_factura
-    JOIN productos p ON df.id_producto = p.id_producto
-    WHERE f.fecha BETWEEN fecha_inicio AND fecha_fin
-    AND f.estado = 'EMITIDA'
-    ORDER BY f.fecha DESC;
-END //
-
--- Procedimiento para actualizar stock después de una factura
-CREATE PROCEDURE sp_actualizar_stock(IN p_id_factura BIGINT)
-BEGIN
-    DECLARE done INT DEFAULT FALSE;
-    DECLARE v_id_producto BIGINT;
-    DECLARE v_cantidad INT;
-    DECLARE cur CURSOR FOR SELECT id_producto, cantidad FROM detalles_factura WHERE id_factura = p_id_factura;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-    
-    OPEN cur;
-    read_loop: LOOP
-        FETCH cur INTO v_id_producto, v_cantidad;
-        IF done THEN
-            LEAVE read_loop;
-        END IF;
-        UPDATE productos SET stock = stock - v_cantidad WHERE id_producto = v_id_producto;
-    END LOOP;
-    CLOSE cur;
-END //
-
-DELIMITER ;
-
--- =====================================================
--- TRIGGERS (Opcionales)
--- =====================================================
-
--- Trigger para calcular automáticamente los totales de factura
-DELIMITER //
-CREATE TRIGGER tr_calcular_totales_factura
-AFTER INSERT ON detalles_factura
-FOR EACH ROW
-BEGIN
-    DECLARE v_subtotal DECIMAL(12,2);
-    DECLARE v_total_iva DECIMAL(12,2);
-    DECLARE v_total DECIMAL(12,2);
-    
-    SELECT COALESCE(SUM(subtotal), 0), COALESCE(SUM(valor_iva), 0), COALESCE(SUM(total), 0)
-    INTO v_subtotal, v_total_iva, v_total
-    FROM detalles_factura
-    WHERE id_factura = NEW.id_factura;
-    
-    UPDATE facturas 
-    SET subtotal = v_subtotal, total_iva = v_total_iva, total = v_total
-    WHERE id_factura = NEW.id_factura;
-END //
-DELIMITER ;
-
--- =====================================================
--- FIN DEL SCRIPT
--- =====================================================
-
 -- Mensaje de confirmación
 SELECT '=== BASE DE DATOS GESTOR EMPRESARIAL CREADA EXITOSAMENTE ===' AS mensaje;
-SELECT 'Tablas creadas: 10' AS info;
-SELECT 'Registros de prueba insertados' AS info;

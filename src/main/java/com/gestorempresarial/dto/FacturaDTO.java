@@ -4,7 +4,6 @@
  */
 package com.gestorempresarial.dto;
 
-import com.gestorempresarial.modelo.DetalleFactura;
 import javax.validation.constraints.*;
 import java.util.Date;
 import java.util.List;
@@ -75,8 +74,11 @@ public class FacturaDTO {
     public List<DetalleFacturaDTO> getDetalles() { return detalles; }
     public void setDetalles(List<DetalleFacturaDTO> detalles) { this.detalles = detalles; }
     
-    // Clase interna para detalles
+    // ============================================
+    // CLASE INTERNA DetalleFacturaDTO (COMPLETA)
+    // ============================================
     public static class DetalleFacturaDTO {
+        
         @NotNull(message = "El producto es obligatorio")
         private Long idProducto;
         
@@ -89,6 +91,14 @@ public class FacturaDTO {
         private Double subtotal;
         private Double valorIva;
         private Double total;
+        
+        // Constructores
+        public DetalleFacturaDTO() {}
+        
+        public DetalleFacturaDTO(Long idProducto, Integer cantidad) {
+            this.idProducto = idProducto;
+            this.cantidad = cantidad;
+        }
         
         // Getters y Setters
         public Long getIdProducto() { return idProducto; }

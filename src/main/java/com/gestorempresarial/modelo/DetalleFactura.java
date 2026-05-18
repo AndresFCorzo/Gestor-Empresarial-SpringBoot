@@ -1,103 +1,82 @@
 /**
- * Clase que representa una factura de venta
+ * Clase que representa el detalle de una factura
+ * 
  * @author Andres Felipe Corzo Angarita
  */
 package com.gestorempresarial.modelo;
 
 import javax.persistence.*;
-import java.util.Date;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "facturas")
-public class Factura {
+@Table(name = "detalles_factura")
+public class DetalleFactura {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idFactura;
-    
-    @Column(unique = true, nullable = false)
-    private String numeroFactura;
-    
-    @Temporal(TemporalType.DATE)
-    private Date fecha;
-    
-    private String estado = "PENDIENTE";
-    
-    private Double subtotal = 0.0;
-    private Double totalIva = 0.0;
-    private Double total = 0.0;
+    private Long idDetalle;
     
     @ManyToOne
-    @JoinColumn(name = "id_cliente")
-    private Cliente cliente;
+    @JoinColumn(name = "id_factura")
+    private Factura factura;
     
-    @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<DetalleFactura> detalles = new ArrayList<>();
+    @ManyToOne
+    @JoinColumn(name = "id_producto")
+    private Producto producto;
+    
+    private Integer cantidad;
+    private Double precioUnitario;
+    private Double subtotal;
+    private Double valorIva;
+    private Double total;
     
     // Constructores
-    public Factura() {
-        this.fecha = new Date();
+    public DetalleFactura() {}
+    
+    public DetalleFactura(Producto producto, Integer cantidad) {
+        this.producto = producto;
+        this.cantidad = cantidad;
+        this.precioUnitario = producto.getPrecio();
+        calcularValores();
     }
     
-    public Factura(String numeroFactura, Cliente cliente) {
-        this();
-        this.numeroFactura = numeroFactura;
-        this.cliente = cliente;
-    }
-    
-    // Métodos de negocio
-    public void agregarDetalle(DetalleFactura detalle) {
-        detalles.add(detalle);
-        detalle.setFactura(this);
-        calcularTotales();
-    }
-    
-    public void calcularTotales() {
-        subtotal = 0.0;
-        totalIva = 0.0;
-        total = 0.0;
-        for (DetalleFactura detalle : detalles) {
-            subtotal += detalle.getSubtotal();
-            totalIva += detalle.getValorIva();
-            total += detalle.getTotal();
+    // Método para calcular valores
+    public void calcularValores() {
+        this.subtotal = cantidad * precioUnitario;
+        if (producto != null && producto.isAplicaIva()) {
+            this.valorIva = subtotal * producto.getPorcentajeIva() / 100;
+        } else {
+            this.valorIva = 0.0;
         }
-    }
-    
-    public void emitir() {
-        this.estado = "EMITIDA";
-    }
-    
-    public void anular() {
-        this.estado = "ANULADA";
+        this.total = subtotal + valorIva;
     }
     
     // Getters y Setters
-    public Long getIdFactura() { return idFactura; }
-    public void setIdFactura(Long idFactura) { this.idFactura = idFactura; }
+    public Long getIdDetalle() { return idDetalle; }
+    public void setIdDetalle(Long idDetalle) { this.idDetalle = idDetalle; }
     
-    public String getNumeroFactura() { return numeroFactura; }
-    public void setNumeroFactura(String numeroFactura) { this.numeroFactura = numeroFactura; }
+    public Factura getFactura() { return factura; }
+    public void setFactura(Factura factura) { this.factura = factura; }
     
-    public Date getFecha() { return fecha; }
-    public void setFecha(Date fecha) { this.fecha = fecha; }
+    public Producto getProducto() { return producto; }
+    public void setProducto(Producto producto) { 
+        this.producto = producto;
+        this.precioUnitario = producto.getPrecio();
+        calcularValores();
+    }
     
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
+    public Integer getCantidad() { return cantidad; }
+    public void setCantidad(Integer cantidad) { 
+        this.cantidad = cantidad;
+        calcularValores();
+    }
+    
+    public Double getPrecioUnitario() { return precioUnitario; }
+    public void setPrecioUnitario(Double precioUnitario) { 
+        this.precioUnitario = precioUnitario;
+        calcularValores();
+    }
     
     public Double getSubtotal() { return subtotal; }
-    public void setSubtotal(Double subtotal) { this.subtotal = subtotal; }
-    
-    public Double getTotalIva() { return totalIva; }
-    public void setTotalIva(Double totalIva) { this.totalIva = totalIva; }
-    
+    public Double getValorIva() { return valorIva; }
     public Double getTotal() { return total; }
-    public void setTotal(Double total) { this.total = total; }
-    
-    public Cliente getCliente() { return cliente; }
-    public void setCliente(Cliente cliente) { this.cliente = cliente; }
-    
-    public List<DetalleFactura> getDetalles() { return detalles; }
-    public void setDetalles(List<DetalleFactura> detalles) { this.detalles = detalles; }
 }
