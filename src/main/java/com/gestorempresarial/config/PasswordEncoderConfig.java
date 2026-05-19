@@ -1,8 +1,3 @@
-/**
- * Configuración de PasswordEncoder para BCrypt
- * 
- * @author Andres Felipe Corzo Angarita
- */
 package com.gestorempresarial.config;
 
 import org.springframework.context.annotation.Bean;

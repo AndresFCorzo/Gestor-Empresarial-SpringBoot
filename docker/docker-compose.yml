@@ -1,48 +1,33 @@
-# =====================================================
-# DOCKER COMPOSE - GESTOR EMPRESARIAL API
-# =====================================================
-#
-# Orquesta los servicios necesarios para la API:
-# - MySQL: Base de datos
-# - API: Servicio de autenticación y gestión
-#
-# @author Andres Felipe Corzo Angarita
-# @author Thomas Felipe Colmenares Perdomo
-# =====================================================
-
 services:
   # =====================================================
-  # Servicio de Base de Datos MySQL
+  # SERVICIO DE BASE DE DATOS MYSQL
   # =====================================================
   mysql:
     image: mysql:8.0
     container_name: gestor-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
-      MYSQL_DATABASE: ${DB_NAME:-gestor_empresarial}
-      MYSQL_USER: ${DB_USER:-appuser}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gestor_empresarial
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./sql:/docker-entrypoint-initdb.d
     networks:
       - gestor-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_PASSWORD:-root}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       timeout: 20s
       retries: 10
       interval: 10s
 
   # =====================================================
-  # Servicio de la API
+  # SERVICIO DE LA API SPRING BOOT
   # =====================================================
   api:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.multistage
     container_name: gestor-api
     restart: unless-stopped
     depends_on:
@@ -52,15 +37,13 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_NAME: ${DB_NAME:-gestor_empresarial}
+      DB_NAME: gestor_empresarial
       DB_USERNAME: root
-      DB_PASSWORD: ${DB_PASSWORD:-root}
-      JWT_SECRET: ${JWT_SECRET:-gestorEmpresarialSecretKey2025}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      DB_PASSWORD: root
+      JWT_SECRET: gestorEmpresarialSecretKey2025
+      JWT_EXPIRATION: 86400000
     ports:
       - "8080:8080"
-    volumes:
-      - api_logs:/app/logs
     networks:
       - gestor-network
     healthcheck:
@@ -70,37 +53,15 @@ services:
       retries: 3
       start_period: 40s
 
-  # =====================================================
-  # Servicio de PHPMyAdmin (Opcional - para administración)
-  # =====================================================
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: gestor-phpmyadmin
-    restart: unless-stopped
-    depends_on:
-      - mysql
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-      PMA_ARBITRARY: 1
-    ports:
-      - "8081:80"
-    networks:
-      - gestor-network
-    profiles:
-      - dev
-
 # =====================================================
-# Volúmenes persistentes
+# VOLÚMENES PERSISTENTES
 # =====================================================
 volumes:
   mysql_data:
     name: gestor-mysql-data
-  api_logs:
-    name: gestor-api-logs
 
 # =====================================================
-# Redes
+# REDES
 # =====================================================
 networks:
   gestor-network:

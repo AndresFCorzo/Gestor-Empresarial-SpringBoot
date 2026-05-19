@@ -1,18 +1,19 @@
-/**
- * Controlador REST para la gestión de facturación
- * Endpoints: /api/facturas
- * 
- * @author Andres Felipe Corzo Angarita
- */
 package com.gestorempresarial.controller;
 
-import com.gestorempresarial.modelo.Factura;
+import com.gestorempresarial.dto.FacturaDTO;
+import com.gestorempresarial.model.Cliente;
+import com.gestorempresarial.model.DetalleFactura;
+import com.gestorempresarial.model.Factura;
+import com.gestorempresarial.model.Producto;
+import com.gestorempresarial.service.ClienteService;
 import com.gestorempresarial.service.FacturaService;
+import com.gestorempresarial.service.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import javax.validation.Valid;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,51 +28,61 @@ public class FacturaController {
     @Autowired
     private FacturaService facturaService;
     
-    /**
-     * Obtiene todas las facturas
-     * GET /api/facturas
-     */
+    @Autowired
+    private ClienteService clienteService;
+    
+    @Autowired
+    private ProductoService productoService;
+    
     @GetMapping
-    public ResponseEntity<List<Factura>> listarFacturas() {
-        return ResponseEntity.ok(facturaService.listarFacturas());
+    public ResponseEntity<List<Factura>> listar() {
+        return ResponseEntity.ok(facturaService.listar());
     }
     
-    /**
-     * Obtiene una factura por ID
-     * GET /api/facturas/{id}
-     */
     @GetMapping("/{id}")
-    public ResponseEntity<Factura> obtenerFactura(@PathVariable Long id) {
-        return ResponseEntity.ok(facturaService.buscarPorId(id));
+    public ResponseEntity<?> obtener(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(facturaService.buscarPorId(id));
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
     }
     
-    /**
-     * Emite una nueva factura (HU-01)
-     * POST /api/facturas
-     */
     @PostMapping
-    public ResponseEntity<?> emitirFactura(@Valid @RequestBody Factura factura) {
+    public ResponseEntity<?> emitir(@Valid @RequestBody FacturaDTO dto) {
         try {
-            Factura nuevaFactura = facturaService.emitirFactura(factura);
+            Cliente cliente = clienteService.buscarPorId(dto.getClienteId());
+            
+            Factura factura = new Factura();
+            factura.setNumeroFactura(dto.getNumeroFactura());
+            factura.setCliente(cliente);
+            
+            for (FacturaDTO.DetalleFacturaDTO detDTO : dto.getDetalles()) {
+                Producto producto = productoService.buscarPorId(detDTO.getProductoId());
+                DetalleFactura detalle = new DetalleFactura(producto, detDTO.getCantidad());
+                factura.agregarDetalle(detalle);
+            }
+            
+            Factura nueva = facturaService.emitir(factura);
+            
             Map<String, Object> response = new HashMap<>();
             response.put("mensaje", "Factura emitida exitosamente");
-            response.put("factura", nuevaFactura);
+            response.put("factura", nueva);
+            
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            return ResponseEntity.badRequest().body(error);
         }
     }
     
-    /**
-     * Anula una factura
-     * PUT /api/facturas/{id}/anular
-     */
     @PutMapping("/{id}/anular")
-    public ResponseEntity<?> anularFactura(@PathVariable Long id) {
+    public ResponseEntity<?> anular(@PathVariable Long id) {
         try {
-            facturaService.anularFactura(id);
+            facturaService.anular(id);
             Map<String, String> response = new HashMap<>();
             response.put("mensaje", "Factura anulada exitosamente");
             return ResponseEntity.ok(response);
@@ -82,37 +93,15 @@ public class FacturaController {
         }
     }
     
-    /**
-     * Obtiene facturas por cliente
-     * GET /api/facturas/cliente/{idCliente}
-     */
-    @GetMapping("/cliente/{idCliente}")
-    public ResponseEntity<List<Factura>> facturasPorCliente(@PathVariable Long idCliente) {
-        return ResponseEntity.ok(facturaService.listarFacturasPorCliente(idCliente));
-    }
-    
-    /**
-     * Obtiene facturas por estado
-     * GET /api/facturas/estado/{estado}
-     */
-    @GetMapping("/estado/{estado}")
-    public ResponseEntity<List<Factura>> facturasPorEstado(@PathVariable String estado) {
-        return ResponseEntity.ok(facturaService.listarFacturasPorEstado(estado));
-    }
-    
-    /**
-     * Genera reporte de ventas por período (HU-06)
-     * GET /api/facturas/reporte/ventas?inicio=dd/MM/yyyy&fin=dd/MM/yyyy
-     */
     @GetMapping("/reporte/ventas")
-    public ResponseEntity<?> generarReporteVentas(
+    public ResponseEntity<?> reporteVentas(
             @RequestParam @DateTimeFormat(pattern = "dd/MM/yyyy") Date inicio,
             @RequestParam @DateTimeFormat(pattern = "dd/MM/yyyy") Date fin) {
         
-        List<Factura> facturas = facturaService.generarReporteVentas(inicio, fin);
+        List<Factura> facturas = facturaService.reporteVentas(inicio, fin);
         
-        // Calcular totales del reporte
         Double totalGeneral = facturas.stream()
+            .filter(f -> "EMITIDA".equals(f.getEstado()))
             .mapToDouble(Factura::getTotal)
             .sum();
         

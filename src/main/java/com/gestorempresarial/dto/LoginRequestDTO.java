@@ -1,20 +1,13 @@
-/**
- * DTO para solicitud de login
- * Soporta tanto username como correo
- * 
- * @author Andres Felipe Corzo Angarita
- */
 package com.gestorempresarial.dto;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotBlank;
 
 public class LoginRequestDTO {
     
-    @NotBlank(message = "El usuario/correo es obligatorio")
+    @NotBlank(message = "El username es obligatorio")
     private String username;
     
     @NotBlank(message = "La contraseña es obligatoria")
-    @Size(min = 4, message = "La contraseña debe tener al menos 4 caracteres")
     private String password;
     
     // Constructores
@@ -31,8 +24,4 @@ public class LoginRequestDTO {
     
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
-    
-    // Método para compatibilidad con correo
-    public String getCorreo() { return username; }
-    public void setCorreo(String correo) { this.username = correo; }
 }
